@@ -1,0 +1,56 @@
+//Created by Kiran Surendran
+//On the 6th of January 2019
+//Description: Jump Logic Unit was built to monitor the Program Counter for the Hack Computer
+
+
+CHIP JumpLogicUnit{
+    
+    IN zr,			//zero flag from ALU 
+       ng,			//negative flag from ALU
+       instructionType,  	//Instruction[15] if A or C type
+       inst[3];			//Last 3 bits in the CPU instruction
+
+    OUT
+	loadOut,
+	incOut;
+
+
+    PARTS:
+	
+	//JGT
+	Or(a=zr, b=ng, out=jgtOr);
+	Not(in=jgtOr, out=jgt);	
+	
+	//JEQ
+	//Just connect the zr input
+	
+	//JGE
+	Not(in=ng, out=ngNot);
+	Or(a=zr, b=ngNot, out=jge);
+	
+	//JLT
+	//Just connect the ng input
+	
+	//JNE
+	Not(in=zr, out=jne);
+
+	//JLE
+	Or(a=zr, b=ng, out=jle);
+	
+	//JMP
+	//Just connect to true
+
+
+	//MUX LOGIC SECTION
+
+	Mux(a=false, b=jgt, sel=inst[0], out=falsejgt);
+	Mux(a=zr, b=jge, sel=inst[0], out=jeqjge);
+	Mux(a=ng, b=jne, sel=inst[0], out=jltjne);
+	Mux(a=jle, b=true, sel=inst[0], out=jletrue);
+	Mux(a=falsejgt, b=jeqjge, sel=inst[1], out=outA);
+	Mux(a=jltjne, b=jletrue, sel=inst[1], out=outB);
+	Mux(a=outA, b=outB, sel=inst[2], out=outIf);
+	And(a=outIf, b=instructionType, out=loadIf);
+	And(a=loadIf, b=loadIf, out=loadOut);	
+	Not(in=loadIf, out=incOut);
+}

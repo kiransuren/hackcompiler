@@ -1,0 +1,47 @@
+// This file is part of the materials accompanying the book 
+// "The Elements of Computing Systems" by Nisan and Schocken, 
+// MIT Press. Book site: www.idc.ac.il/tecs
+// File name: projects/03/b/RAM512.hdl
+
+/**
+ * Memory of 512 registers, each 16 bit-wide. Out holds the value
+ * stored at the memory location specified by address. If load==1, then 
+ * the in value is loaded into the memory location specified by address 
+ * (the loaded value will be emitted to out from the next time step onward).
+ */
+
+CHIP RAM512 {
+    IN in[16], load, address[9];
+    OUT out[16];
+
+    PARTS:
+
+	 //Finds ram chip with given address and sets to load
+   	 DMux(in=load, sel=address[8], a=r0123, b=r4567);
+   	 DMux(in=r0123, sel=address[7], a=r01, b=r23);
+	 DMux(in=r4567, sel=address[7], a=r45, b=r67);
+	 DMux(in=r01, sel=address[6], a=r0load, b=r1load);
+	 DMux(in=r23, sel=address[6], a=r2load, b=r3load);
+  	 DMux(in=r45, sel=address[6], a=r4load, b=r5load);
+	 DMux(in=r67, sel=address[6], a=r6load, b=r7load);
+
+	//Create RAM64chips, set all ins to given in and set all loads to given loads and sets address to last three digits
+	RAM64(in=in, load=r0load, address=address[0..5], out=r0Out);		//RAM64 CHIP 0
+	RAM64(in=in, load=r1load, address=address[0..5], out=r1Out);		//RAM64 CHIP 1
+	RAM64(in=in, load=r2load, address=address[0..5], out=r2Out);		//RAM64 CHIP 2
+	RAM64(in=in, load=r3load, address=address[0..5], out=r3Out);		//RAM64 CHIP 3
+	RAM64(in=in, load=r4load, address=address[0..5], out=r4Out);		//RAM64 CHIP 4
+	RAM64(in=in, load=r5load, address=address[0..5], out=r5Out);		//RAM64 CHIP 5
+	RAM64(in=in, load=r6load, address=address[0..5], out=r6Out);		//RAM64 CHIP 6
+	RAM64(in=in, load=r7load, address=address[0..5], out=r7Out);		//RAM64 CHIP 7
+	
+	//Finds ram chip with given address and sets to out
+	Mux16(a=r0Out, b=r1Out, sel=address[6], out=r01Out);
+	Mux16(a=r2Out, b=r3Out, sel=address[6], out=r23Out);
+	Mux16(a=r4Out, b=r5Out, sel=address[6], out=r45Out);
+	Mux16(a=r6Out, b=r7Out, sel=address[6], out=r67Out);
+	Mux16(a=r01Out, b=r23Out, sel=address[7], out=r0123Out);
+	Mux16(a=r45Out, b=r67Out, sel=address[7], out=r4567Out);
+	Mux16(a=r0123Out, b=r4567Out, sel=address[8], out=out);
+	
+}
